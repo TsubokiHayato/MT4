@@ -1,10 +1,10 @@
 #pragma once
 #include "Matrix4x4.h"
+#include "Novice.h"
 #include "Vector3.h"
 #include <cmath>
 #include <iostream>
 #include <string>
-#include"Novice.h"
 class Quaternion {
 
 public:
@@ -48,7 +48,6 @@ inline Quaternion Conjugate(const Quaternion& q) {
 	return result;
 }
 
-
 inline float Norm(const Quaternion& q) { return sqrtf(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w); }
 inline Quaternion Inverse(const Quaternion& q) {
 
@@ -67,8 +66,73 @@ inline float kColumnWidth = 60.0f;
 inline void QuaternionScreenPrintf(int x, int y, const Quaternion& quaternion, const char* label) {
 
 	Novice::ScreenPrintf(x, y, "%.02f", quaternion.x);
-	Novice::ScreenPrintf(x +(int) kColumnWidth, y, "%.02f", quaternion.y);
-	Novice::ScreenPrintf(x +(int) kColumnWidth * 2, y, "%.02f", quaternion.z);
-	Novice::ScreenPrintf(x +(int) kColumnWidth * 3, y, "%.02f", quaternion.w);
-	Novice::ScreenPrintf(x +(int) kColumnWidth * 4, y, "%s", label);
+	Novice::ScreenPrintf(x + (int)kColumnWidth, y, "%.02f", quaternion.y);
+	Novice::ScreenPrintf(x + (int)kColumnWidth * 2, y, "%.02f", quaternion.z);
+	Novice::ScreenPrintf(x + (int)kColumnWidth * 3, y, "%.02f", quaternion.w);
+	Novice::ScreenPrintf(x + (int)kColumnWidth * 4, y, "%s", label);
+}
+
+inline Quaternion MakeRotateAxisQuaternion(const Vector3& axis, float radian) {
+	Quaternion result;
+	float halfAngle = radian * 0.5f;
+	float sinHalfAngle = sinf(halfAngle);
+
+	Vector3 normalizedAxis = Normalize(axis);
+	result.x = normalizedAxis.x * sinHalfAngle;
+	result.y = normalizedAxis.y * sinHalfAngle;
+	result.z = normalizedAxis.z * sinHalfAngle;
+	result.w = cosf(halfAngle);
+	return result;
+}
+
+inline Vector3 RotateQuaternion(const Vector3& v, const Quaternion& q) {
+	Quaternion p = {v.x, v.y, v.z, 0.0f};
+	Quaternion qInv = Inverse(q);
+	Quaternion qv = Multiply(Multiply(q, p), qInv);
+	Vector3 result = {qv.x, qv.y, qv.z};
+	return result;
+}
+
+inline Matrix4x4 MakeRotateMatrix(const Quaternion& q) {
+	Matrix4x4 result;
+
+	float xx = q.x * q.x;
+	float yy = q.y * q.y;
+	float zz = q.z * q.z;
+	float xy = q.x * q.y;
+	float xz = q.x * q.z;
+	float yz = q.y * q.z;
+	float wx = q.w * q.x;
+	float wy = q.w * q.y;
+	float wz = q.w * q.z;
+
+	result.m[0][0] = 1.0f - 2.0f * (yy + zz);
+	result.m[0][1] = 2.0f * (xy + wz);
+	result.m[0][2] = 2.0f * (xz - wy);
+	result.m[0][3] = 0.0f;
+
+	result.m[1][0] = 2.0f * (xy - wz);
+	result.m[1][1] = 1.0f - 2.0f * (xx + zz);
+	result.m[1][2] = 2.0f * (yz + wx);
+	result.m[1][3] = 0.0f;
+
+	result.m[2][0] = 2.0f * (xz + wy);
+	result.m[2][1] = 2.0f * (yz - wx);
+	result.m[2][2] = 1.0f - 2.0f * (xx + yy);
+	result.m[2][3] = 0.0f;
+
+	result.m[3][0] = 0.0f;
+	result.m[3][1] = 0.0f;
+	result.m[3][2] = 0.0f;
+	result.m[3][3] = 1.0f;
+
+	return result;
+}
+
+inline Vector3 Transform(const Matrix4x4& matrix, const Vector3& vector) {
+	Vector3 result;
+	result.x = matrix.m[0][0] * vector.x + matrix.m[0][1] * vector.y + matrix.m[0][2] * vector.z + matrix.m[0][3];
+	result.y = matrix.m[1][0] * vector.x + matrix.m[1][1] * vector.y + matrix.m[1][2] * vector.z + matrix.m[1][3];
+	result.z = matrix.m[2][0] * vector.x + matrix.m[2][1] * vector.y + matrix.m[2][2] * vector.z + matrix.m[2][3];
+	return result;
 }
