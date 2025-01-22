@@ -1,9 +1,8 @@
+#include "Matrix4x4.h"
 #include <Novice.h>
-#include<Vector3.h>
+#include <Vector3.h>
 #include <Vector4.h>
-#include"Matrix4x4.h"
 const char kWindowTitle[] = "学籍番号";
-
 
 // 任意軸回転行列を作成する関数
 // 行ベクトルで計算
@@ -39,6 +38,31 @@ Matrix4x4 MakeRotateAxisAngleMatrix(Vector3& axis, float angle) {
 	return result;
 }
 
+Vector3 Cross(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	result.x = v1.y * v2.z - v1.z * v2.y;
+	result.y = v1.z * v2.x - v1.x * v2.z;
+	result.z = v1.x * v2.y - v1.y * v2.x;
+	return result;
+}
+Matrix4x4 DirectionToDirection(const Vector3& from, const Vector3& to) {
+	Vector3 fromN = Normalize(from);
+	Vector3 toN = Normalize(to);
+	float dotProduct = Dot(fromN, toN);
+
+	// 真逆のときの処理
+	if (dotProduct < -0.9999f) {
+		Vector3 orthogonal = (fabs(fromN.x) > fabs(fromN.z)) ? Vector3(-fromN.y, fromN.x, 0.0f) : Vector3(0.0f, -fromN.z, fromN.y);
+		orthogonal = Normalize(orthogonal);
+		return MakeRotateAxisAngleMatrix(orthogonal, 3.14159265358979323846f); // 180度回転
+	}
+
+	Vector3 axis = Cross(fromN, toN);
+	float angle = acosf(dotProduct);
+	return MakeRotateAxisAngleMatrix(axis, angle);
+}
+
+
 static const int kRowHeight = 20;
 static const int kRowWidth = 60;
 
@@ -62,10 +86,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-
-	Vector3 axis = Normalize({1.0f, 1.0f, 1.0f});
-	float angle = 0.44f;
-
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -79,9 +99,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		Matrix4x4 rotateAxisAngleMatrix = MakeRotateAxisAngleMatrix(axis, angle);
+		Vector3 from0 = Normalize(Vector3(1.0f, 0.7f, 0.5f));
+		Vector3 to0 = -from0;
 
-		MatrixScreenPrintf(10, 10, rotateAxisAngleMatrix);
+
+		Vector3 from1 = Normalize(Vector3(-0.6f, 0.9f, 0.2f));
+		Vector3 to1 = Normalize(Vector3(0.4f, 0.7f, -0.5f));
+
+		Matrix4x4 rotateMatrix0 = 
+			DirectionToDirection(Normalize(Vector3(1.0f, 0.0f, 0.0f)),
+				Normalize(Vector3(-1.0f, 0.0f, 0.0f)));
+
+		Matrix4x4 rotateMatrix1 = DirectionToDirection(from0, to0);
+
+		Matrix4x4 rotateMatrix2 = DirectionToDirection(from1, to1);
+
+		MatrixScreenPrintf(0, 0, rotateMatrix0);
+		MatrixScreenPrintf(0, kRowHeight * 10, rotateMatrix1);
+		MatrixScreenPrintf(0, kRowHeight * 20, rotateMatrix2);
 		///
 		/// ↑更新処理ここまで
 		///
