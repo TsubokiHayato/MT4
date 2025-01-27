@@ -110,21 +110,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 		
-		Quaternion rotation = MakeRotateAxisQuaternion(
-			Normalize(Vector3{1.0f, 0.4f, -0.2f}), 0.45f);
+		Quaternion rotation0 = MakeRotateAxisQuaternion({0.71f, 0.71f, 0.0f}, 0.3f);
+		Quaternion rotation1 = MakeRotateAxisQuaternion({0.71f, 0.0f, 0.71f}, 3.141592f);
 
-		Vector3 pointY = {2.1f, -0.9f, 1.3f};
-		Matrix4x4 rotateMatrix = MakeRotateMatrix(rotation);
-		Vector3 rotateByQuaternion = RotateQuaternion(pointY, rotation);
-		Vector3 rotateByMatrix = Transform(rotateMatrix, pointY);
-		
+		Quaternion interpolated0 = Slerp(rotation0, rotation1, 0.0f);
+		Quaternion interpolated1 = Slerp(rotation0, rotation1, 0.3f);
+		Quaternion interpolated2 = Slerp(rotation0, rotation1, 0.5f);
+		Quaternion interpolated3 = Slerp(rotation0, rotation1, 0.7f);
+		Quaternion interpolated4 = Slerp(rotation0, rotation1, 1.0f);
 
-		QuaternionScreenPrintf(0, kRowHeight * 0, rotation, "Rotation");
 
-		MatrixScreenPrintf(0, kRowHeight * 2, rotateMatrix);
+		// デバッグ用文字列を表示
+		/*QuaternionScreenPrintf(10, 10, rotation0, "rotation0");
+		QuaternionScreenPrintf(10, 30, rotation1, "rotation1");*/
+		QuaternionScreenPrintf(10, 50, interpolated0, "interpolated0");
+		QuaternionScreenPrintf(10, 70, interpolated1, "interpolated1");
+		QuaternionScreenPrintf(10, 90, interpolated2, "interpolated2");
+		QuaternionScreenPrintf(10, 110, interpolated3, "interpolated3");
+		QuaternionScreenPrintf(10, 130, interpolated4, "interpolated4");
 
-		VectorScreenPrintf(0, kRowHeight * 7, rotateByQuaternion, "RotateByQuaternion");
-		VectorScreenPrintf(0, kRowHeight * 8, rotateByMatrix, "RotateByMatrix");
+
+
 		///
 		/// ↑更新処理ここまで
 		///

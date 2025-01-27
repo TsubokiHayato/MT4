@@ -136,3 +136,34 @@ inline Vector3 Transform(const Matrix4x4& matrix, const Vector3& vector) {
 	result.z = matrix.m[2][0] * vector.x + matrix.m[2][1] * vector.y + matrix.m[2][2] * vector.z + matrix.m[2][3];
 	return result;
 }
+
+inline Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, float t) {
+	Quaternion q2Copy = q2;
+	float dot = q1.x * q2Copy.x + q1.y * q2Copy.y + q1.z * q2Copy.z + q1.w * q2Copy.w;
+	if (dot < 0.0f) {
+		q2Copy.x = -q2Copy.x;
+		q2Copy.y = -q2Copy.y;
+		q2Copy.z = -q2Copy.z;
+		q2Copy.w = -q2Copy.w;
+		dot = -dot;
+	}
+	const float kThreshold = 0.9995f;
+	if (dot > kThreshold) {
+		Quaternion result;
+		result.x = q1.x + t * (q2Copy.x - q1.x);
+		result.y = q1.y + t * (q2Copy.y - q1.y);
+		result.z = q1.z + t * (q2Copy.z - q1.z);
+		result.w = q1.w + t * (q2Copy.w - q1.w);
+		return Normalize(result);
+	}
+	float theta = acosf(dot);
+	float sinTheta = sinf(theta);
+	float sinOneMinusTheta = sinf((1.0f - t) * theta);
+	float sinTTheta = sinf(t * theta);
+	Quaternion result;
+	result.x = (q1.x * sinOneMinusTheta + q2Copy.x * sinTTheta) / sinTheta;
+	result.y = (q1.y * sinOneMinusTheta + q2Copy.y * sinTTheta) / sinTheta;
+	result.z = (q1.z * sinOneMinusTheta + q2Copy.z * sinTTheta) / sinTheta;
+	result.w = (q1.w * sinOneMinusTheta + q2Copy.w * sinTTheta) / sinTheta;
+	return result;
+}
