@@ -148,6 +148,7 @@ inline Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, float t) {
 		dot = -dot;
 	}
 	const float kThreshold = 0.9995f;
+	const float EPSILON = 1e-6f;
 	if (dot > kThreshold) {
 		Quaternion result;
 		result.x = q1.x + t * (q2Copy.x - q1.x);
@@ -155,6 +156,14 @@ inline Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, float t) {
 		result.z = q1.z + t * (q2Copy.z - q1.z);
 		result.w = q1.w + t * (q2Copy.w - q1.w);
 		return Normalize(result);
+	}
+	if (dot >= 1.0f - EPSILON) {
+		return {
+		    (1.0f - t) * q1.x + t * q2Copy.x,
+		    (1.0f - t) * q1.y + t * q2Copy.y,
+		    (1.0f - t) * q1.z + t * q2Copy.z,
+		    (1.0f - t) * q1.w + t * q2Copy.w,
+		};
 	}
 	float theta = acosf(dot);
 	float sinTheta = sinf(theta);
